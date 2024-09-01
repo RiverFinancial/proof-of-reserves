@@ -1,0 +1,29 @@
+name: Install mix deps from cache and compile
+description: Restore mix cache and install mix deps
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Restore  mix cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          deps
+          _build
+        # We include elixir/otp version here to ensure we cache the recompiled _build artifacts when versions change, while reusing the existing deps.
+        key: ${{ runner.os }}-mix-${{ hashFiles('mix.lock') }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}
+        # Note: Since we're restoring cached deps that might not match the mix lock exactly, in some unlikely scenarios the deps may not update correctly
+        # without cleaning deps/ first. If a workflow fails due to this, the stop-gap solution is to clear any mix cache entries for impacted branches.
+        # If the problem becomes chronic, remove any restore-keys below that don't include the hash of the mix lock file to force a clean install every time.
+        restore-keys: |
+          ${{ runner.os }}-mix-${{ hashFiles('mix.lock') }}
+          ${{ runner.os }}-mix-
+    - name: Install mix deps
+      working-directory: .
+      shell: bash
+      run: mix deps.get
+    # Compile now so that any needed recompilation time isn't counted towards other checks
+    - name: Compile ${{ inputs.app }}
+      working-directory: .
+      shell: bash
+      run: mix compile

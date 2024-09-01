@@ -1,0 +1,58 @@
+name: Test
+
+on:
+  - workflow_call
+
+env:
+  MIX_ENV: test
+  # Used for mix/plt cache keys
+  ELIXIR_VERSION: '1.17.2'
+  OTP_VERSION: '27.0.1'
+
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  run_tests:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1.16.0
+        with:
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          otp-version: ${{ env.OTP_VERSION }}
+
+      - name: Setup mix deps & compile
+        uses: ./.github/actions/setup-mix
+
+      - name: Check formatting
+        run: mix format --check-formatted
+      - name: Credo
+        run: mix credo --strict --only warning
+
+      - name: mix audit checks
+        run: mix deps.audit
+
+      # Dialyzer
+      - name: Restore dialyzer PLTs cache
+        uses: actions/cache@v3
+        with:
+          path: plts/dialyzer.plt
+          # We don't include github ref_name in key because caches are already implicitly branch scoped. GitHub will try to find
+          # hits for the full key, and any restore-keys on the current branch first, then fallback to trying them all again against master.
+          # See: https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#matching-a-cache-key
+          # It's important to include the github sha here (or some other content based hash) because cache entries are immutable.
+          # We must not restore from a cache key that doesn't include the OTP/elixir version because dialyzer will break.
+          key: ${{ runner.os }}-plt-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-plt-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-
+            ${{ runner.os }}-plt-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-
+      - name: dialyzer checks
+        run: ./.github/scripts/ci_check_dialyzer.sh
+
+      - name: Run tests
+        run: mix coveralls
