@@ -52,7 +52,7 @@ jobs:
             ${{ runner.os }}-plt-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-
             ${{ runner.os }}-plt-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-
       - name: dialyzer checks
-        run: ./.github/scripts/ci_check_dialyzer.sh
+        run: ./scripts/ci_check_dialyzer.sh
 
       - name: Run tests
         run: mix coveralls

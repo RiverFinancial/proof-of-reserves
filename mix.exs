@@ -22,21 +22,20 @@ defmodule ProofOfReserves.MixProject do
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
-
     [
-      {:math, "~> 0.6.0"},
-
+      {:math, "~> 0.6.0"}
     ] ++ dev_and_test_deps()
   end
 
   defp dev_and_test_deps do
     envs = [:dev, :test]
+
     [
       # Test & Lint
       {:credo, "== 1.6.4", only: envs, runtime: false},
       {:excoveralls, "== 0.14.5", only: envs},
       # Type checking
-      {:dialyxir, "== 1.4.3", only: envs, runtime: false},
+      {:dialyxir, "~> 1.4.3", only: envs, runtime: false},
       # Security
       {:sobelow, "~> 0.13.0", only: envs, runtime: false},
       {:mix_audit, "~> 2.1", only: envs, runtime: false}
@@ -62,6 +61,7 @@ defmodule ProofOfReserves.MixProject do
   defp dialyzer do
     [
       plt_file: {:no_warn, "plts/dialyzer.plt"},
+      plt_add_apps: [:mix],
       flags: [:error_handling],
       ignore_warnings: ".dialyzer_ignore.exs"
     ]

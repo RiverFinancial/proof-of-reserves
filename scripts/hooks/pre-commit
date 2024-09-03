@@ -1,0 +1,12 @@
+#!/bin/bash
+# To use this hook, run: git config --add core.hookspath scripts/hooks
+
+# Note: safe to assume git hooks run with repo root as cwd
+
+BASE_PRE_COMMIT=".git/hooks/pre-commit.sample"
+
+if [ -f "$BASE_PRE_COMMIT" ]; then
+  "$BASE_PRE_COMMIT"
+fi
+
+scripts/format.sh

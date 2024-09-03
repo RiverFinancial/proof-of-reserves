@@ -26,3 +26,5 @@ proof_of_reserves-*.tar
 /tmp/
 
 *.csv
+
+plts/*

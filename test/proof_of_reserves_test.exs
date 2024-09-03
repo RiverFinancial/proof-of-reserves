@@ -28,7 +28,9 @@ defmodule ProofOfReservesTest do
         Liabilities.fake_liability(amount)
       ]
 
-      full_liabilities = ProofOfReserves.split_liabilities(liabilities, liability_maximum_threshold_sat)
+      full_liabilities =
+        ProofOfReserves.split_liabilities(liabilities, liability_maximum_threshold_sat)
+
       assert length(full_liabilities) >= 4
 
       Enum.each(full_liabilities, fn liability ->
@@ -72,7 +74,8 @@ defmodule ProofOfReservesTest do
         Liabilities.fake_liability(amount)
       ]
 
-      full_liabilities = ProofOfReserves.split_liabilities(liabilities, liability_maximum_threshold_sat)
+      full_liabilities =
+        ProofOfReserves.split_liabilities(liabilities, liability_maximum_threshold_sat)
 
       # we won't know the exact amount of liabilities, but we know it's at least 8
       assert length(full_liabilities) > 4
@@ -97,7 +100,12 @@ defmodule ProofOfReservesTest do
       block_height: block_height,
       liability_maximum_threshold_sat: liability_maximum_threshold_sat
     } do
-      assert [] == ProofOfReserves.build_liabilities_tree(block_height, [], liability_maximum_threshold_sat)
+      assert [] ==
+               ProofOfReserves.build_liabilities_tree(
+                 block_height,
+                 [],
+                 liability_maximum_threshold_sat
+               )
     end
 
     test "indivisible singleton", %{
@@ -131,7 +139,11 @@ defmodule ProofOfReservesTest do
 
       # assert sum matches & two leaves are in correct order
       [[%ProofOfReserves.MerkleSumTree.Node{value: 2, hash: hash}], [^leaf0, ^leaf1]] =
-        ProofOfReserves.build_liabilities_tree(block_height, liabilities, liability_maximum_threshold_sat)
+        ProofOfReserves.build_liabilities_tree(
+          block_height,
+          liabilities,
+          liability_maximum_threshold_sat
+        )
 
       assert Util.bin_to_hex!(hash) ==
                "0000c1d0b830134f958a5be3fac281a25e3c134741228c00394cc8cbafa70351"
@@ -156,7 +168,12 @@ defmodule ProofOfReservesTest do
         [_n0, _n1],
         [_n00, _n01, _n10, _n11],
         [_leaf0, _leaf1, _leaf2, _leaf3, _leaf4, _leaf5, _leaf6, _leaf7]
-      ] = ProofOfReserves.build_liabilities_tree(block_height, liabilities, liability_maximum_threshold_sat)
+      ] =
+        ProofOfReserves.build_liabilities_tree(
+          block_height,
+          liabilities,
+          liability_maximum_threshold_sat
+        )
     end
 
     test "5 liabilities", %{
@@ -172,7 +189,11 @@ defmodule ProofOfReservesTest do
       ]
 
       [[%ProofOfReserves.MerkleSumTree.Node{value: 15}] | _] =
-        ProofOfReserves.build_liabilities_tree(block_height, liabilities, liability_maximum_threshold_sat)
+        ProofOfReserves.build_liabilities_tree(
+          block_height,
+          liabilities,
+          liability_maximum_threshold_sat
+        )
     end
   end
 
@@ -205,7 +226,11 @@ defmodule ProofOfReservesTest do
       ]
 
       tree =
-        ProofOfReserves.build_liabilities_tree(block_height, liabilities, liability_maximum_threshold_sat)
+        ProofOfReserves.build_liabilities_tree(
+          block_height,
+          liabilities,
+          liability_maximum_threshold_sat
+        )
 
       leaves = ProofOfReserves.MerkleSumTree.get_leaves(tree)
       my_leaves = ProofOfReserves.find_account_leaves(leaves, block_height, acct_id, acct_key)
@@ -246,7 +271,11 @@ defmodule ProofOfReservesTest do
       ]
 
       tree =
-        ProofOfReserves.build_liabilities_tree(block_height, liabilities, liability_maximum_threshold_sat)
+        ProofOfReserves.build_liabilities_tree(
+          block_height,
+          liabilities,
+          liability_maximum_threshold_sat
+        )
 
       leaves = ProofOfReserves.MerkleSumTree.get_leaves(tree)
       my_leaves = ProofOfReserves.find_account_leaves(leaves, block_height, acct_id, acct_key)

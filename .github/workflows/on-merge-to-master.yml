@@ -1,0 +1,27 @@
+# This workflow runs any time `master` is updated.
+#
+# In practice, due to branch protection rules, this should only happen when a PR
+# is merged.
+#
+# In summary, this workflow:
+#   1. Runs the `test.yml` workflow to check formatting, Credo, tests, etc.
+#   2. Builds the app
+
+name: Merged PR
+run-name: Merged PR
+
+on:
+  push:
+    branches: ['master']
+    # Don't rudundantly run checks when merging release-please PR
+    paths-ignore:
+    - 'CHANGELOG.md'
+
+jobs:
+  test:
+    name: Test
+    secrets: inherit
+    uses: ./.github/workflows/test.yml
+    permissions:
+      contents: 'read'
+      id-token: 'write'

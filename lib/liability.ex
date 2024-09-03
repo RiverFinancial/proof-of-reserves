@@ -38,7 +38,11 @@ defimpl Inspect, for: ProofOfReserves.Liability do
   alias ProofOfReserves.Util
 
   def inspect(
-        %ProofOfReserves.Liability{account_id: account_id, account_subkey: account_subkey, amount: amount},
+        %ProofOfReserves.Liability{
+          account_id: account_id,
+          account_subkey: account_subkey,
+          amount: amount
+        },
         _opts
       ) do
     "%Liability{account_id: #{account_id}, amount: #{amount}, account_subkey: #{Util.abbr_hash(account_subkey)}}"

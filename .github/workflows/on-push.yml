@@ -1,0 +1,27 @@
+# This workflow is triggered whenever a PR is created against the `master`
+# branch. It's also triggered any time a new commit is added to such a PR.
+
+name: Push
+run-name: "Branch ${{ github.ref_name }}"
+
+on:
+  push:
+    branches-ignore: ['master']
+
+# Whenever a new commit is added to an open PR's branch, cancel any running jobs
+# for prior commits and start jobs for the latest commit. `github.ref` is
+# "refs/pull/<pr_number>/merge", and the `group` option below only allows 1
+# workflow at a time for the given string.
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+# Simply launch the `test.yml` workflow.
+jobs:
+  test:
+    name: Test
+    secrets: inherit
+    uses: ./.github/workflows/test.yml
+    permissions:
+      contents: 'read'
+      id-token: 'write'
