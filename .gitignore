@@ -25,6 +25,9 @@ proof_of_reserves-*.tar
 # Temporary files, for example, from tests.
 /tmp/
 
-*.csv
-
+# Ignore plt files
 plts/*
+
+# Ignore data files
+./data/*
+./*.csv

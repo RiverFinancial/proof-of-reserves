@@ -6,7 +6,7 @@ set -e
 function filterStaged() {
   path=$1
   # Lists all non-deleted, staged, file paths and strips the path prefix
-  git diff --diff-filter=d --cached --name-only $path | cut -c $((${#path}+2))-
+  git diff --diff-filter=d --cached --name-only $path
 }
 
 STAGED_FILES=$(filterStaged ".")
