@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -euo pipefail
 
 # This script is used to setup the project, install erlang, elixir, and mix dependencies.
@@ -15,12 +15,27 @@ function install_asdf_deps() {
 	# Linux
 	Linux*)
 		echo "Setting up project for Linux"
-		sudo apt install curl git -y
-		# TODO: what if they don't use apt or don't have sudo?
+
+		# Currently supporting APT & DNF only.
+		for candidate in apt-get dnf
+		do
+			if [ -x "$(command -v ${candidate})" ]
+			then
+				package_manager=$candidate
+			fi
+		done
+
+		if [ -z "${package_manager+X}" ]
+		then
+			>&2 echo "Unknown package manager."
+			exit +1
+		fi
+
+		sudo "${package_manager}" install -y curl git automake autoconf libncurses-dev
 		;;
 	*)
-		echo "Unsupported OS: $(uname -s)"
-		exit 1
+		>&2 echo "Unsupported OS: $(uname -s)"
+		exit +2
 		;;
 	esac
 }
