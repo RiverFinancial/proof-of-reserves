@@ -41,23 +41,38 @@ function install_asdf_deps() {
 }
 
 function install_asdf() {
-	git clone https://github.com/asdf-vm/asdf.git ~/.asdf
+	ASDF_DIR="$HOME/.asdf"
 
-	# Add asdf to your shell
+	# Avoid reinstalling if ASDF directory exists.
+	if [ -d "$ASDF_DIR" ]
+	then
+		echo "Existing ASDF directory found, skipping installation..."
+		return
+	fi
+
+	git clone https://github.com/asdf-vm/asdf.git "$ASDF_DIR"
+
+	ASDF_ENV="$ASDF_DIR/asdf.sh"
+
+	# Add asdf to your shell and source RC file to include ASDF path additions.
 	case $SHELL in
 		*/bash)
-			echo -e "\n. $HOME/.asdf/asdf.sh" >> ~/.bashrc
+			echo -e "\nsource $ASDF_ENV" >> ~/.bashrc
+			source "$ASDF_ENV"
 			;;
 		*/zsh)
-			echo -e "\n. $HOME/.asdf/asdf.sh" >> ~/.zshrc
+			echo -e "\nsource $ASDF_ENV" >> ~/.zshrc
+			source "$ASDF_ENV"
 			;;
 		*/fish)
 			echo -e "\nsource $HOME/.asdf/asdf.fish" >> ~/.config/fish/config.fish
+			# TODO: Reload to adjust path?
 			;;
 		*)
-			echo "Unsupported shell: $SHELL"
-			echo "Please add the following line to your shell configuration file:"
-			echo ". $HOME/.asdf/asdf.sh"
+			>&2 echo "Unsupported shell: $SHELL"
+			>&2 echo "Please add the following line to your shell configuration file:"
+			>&2 echo ". $HOME/.asdf/asdf.sh"
+			exit +3
 			;;
 	esac
 }
