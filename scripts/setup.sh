@@ -1,4 +1,5 @@
 #!/bin/sh
+set -euo pipefail
 
 # This script is used to setup the project, install erlang, elixir, and mix dependencies.
 # NOTE: it currently assumes you are using MacOS.
