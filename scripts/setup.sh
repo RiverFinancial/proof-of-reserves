@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # This script is used to setup the project, install erlang, elixir, and mix dependencies.
-# NOTE: it currently assumes you are using MacOS.
+# NOTE: it currently assumes you are using MacOS or a Linux distribution derived from Debian or RedHat
 
 # Install dependencies for asdf (curl, git, etc.)
 function install_asdf_deps() {
