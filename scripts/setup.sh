@@ -1,7 +1,8 @@
-#!/bin/sh
+#!/bin/bash
+set -euo pipefail
 
 # This script is used to setup the project, install erlang, elixir, and mix dependencies.
-# NOTE: it currently assumes you are using MacOS.
+# NOTE: it currently assumes you are using MacOS or a Linux distribution derived from Debian or RedHat
 
 # Install dependencies for asdf (curl, git, etc.)
 function install_asdf_deps() {
@@ -14,34 +15,64 @@ function install_asdf_deps() {
 	# Linux
 	Linux*)
 		echo "Setting up project for Linux"
-		sudo apt install curl git -y
-		# TODO: what if they don't use apt or don't have sudo?
+
+		# Currently supporting APT & DNF only.
+		for candidate in apt-get dnf
+		do
+			if [ -x "$(command -v ${candidate})" ]
+			then
+				package_manager=$candidate
+			fi
+		done
+
+		if [ -z "${package_manager+X}" ]
+		then
+			>&2 echo "Unknown package manager."
+			exit +1
+		fi
+
+		sudo "${package_manager}" install -y curl git automake autoconf libncurses-dev
 		;;
 	*)
-		echo "Unsupported OS: $(uname -s)"
-		exit 1
+		>&2 echo "Unsupported OS: $(uname -s)"
+		exit +2
 		;;
 	esac
 }
 
 function install_asdf() {
-	git clone https://github.com/asdf-vm/asdf.git ~/.asdf
+	ASDF_DIR="$HOME/.asdf"
 
-	# Add asdf to your shell
+	# Avoid reinstalling if ASDF directory exists.
+	if [ -d "$ASDF_DIR" ]
+	then
+		echo "Existing ASDF directory found, skipping installation..."
+		return
+	fi
+
+	git clone https://github.com/asdf-vm/asdf.git "$ASDF_DIR"
+
+	ASDF_ENV="$ASDF_DIR/asdf.sh"
+
+	# Add asdf to your shell and source RC file to include ASDF path additions.
 	case $SHELL in
 		*/bash)
-			echo -e "\n. $HOME/.asdf/asdf.sh" >> ~/.bashrc
+			echo -e "\nsource $ASDF_ENV" >> ~/.bashrc
+			source "$ASDF_ENV"
 			;;
 		*/zsh)
-			echo -e "\n. $HOME/.asdf/asdf.sh" >> ~/.zshrc
+			echo -e "\nsource $ASDF_ENV" >> ~/.zshrc
+			source "$ASDF_ENV"
 			;;
 		*/fish)
 			echo -e "\nsource $HOME/.asdf/asdf.fish" >> ~/.config/fish/config.fish
+			# TODO: Reload to adjust path?
 			;;
 		*)
-			echo "Unsupported shell: $SHELL"
-			echo "Please add the following line to your shell configuration file:"
-			echo ". $HOME/.asdf/asdf.sh"
+			>&2 echo "Unsupported shell: $SHELL"
+			>&2 echo "Please add the following line to your shell configuration file:"
+			>&2 echo ". $HOME/.asdf/asdf.sh"
+			exit +3
 			;;
 	esac
 }
