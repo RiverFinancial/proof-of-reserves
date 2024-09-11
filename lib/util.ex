@@ -143,7 +143,7 @@ defmodule ProofOfReserves.Util do
   end
 
   @doc """
-  calculate_attestation_key generates the sub nonce for the liability in a specific attestation.
+  calculate_attestation_key generates the attestation key for the account in a specific attestation.
   attestation_key = sha256(account_subkey || block_height || account_id)
   block_height and account_id must be 8-byte ints.
   """
@@ -164,5 +164,9 @@ defmodule ProofOfReserves.Util do
   def leaf_hash(value, attestation_key, leaf_index) do
     msg = int_to_little(value, 8) <> int_to_little(leaf_index, 8)
     sha256hmac(attestation_key, msg)
+  end
+
+  def sats_to_btc(sats) do
+    sats / 100_000_000
   end
 end

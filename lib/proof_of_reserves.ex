@@ -75,48 +75,48 @@ defmodule ProofOfReserves do
   # ACCOUNT BALANCE CALCULATIONS
 
   @doc """
-  find_account_leaves finds all leaves that belong to a particular
+  find_balances_for_accounts finds all leaves that belong to a particular
   account using the attestation_key
   """
-  def find_account_leaves(leaves, block_height, account_id, account_subkey) do
-    attestation_key = Util.calculate_attestation_key(account_subkey, block_height, account_id)
-    find_account_leaves(leaves, attestation_key)
-  end
+  @spec find_balances_for_accounts(
+          list(MerkleSumTree.Node.t()),
+          non_neg_integer(),
+          list(%{
+            account_id: non_neg_integer(),
+            account_subkey: binary()
+          })
+        ) ::
+          list(%{
+            account_id: non_neg_integer(),
+            balance: non_neg_integer(),
+            attestation_key: binary()
+          })
+  def find_balances_for_accounts(leaves, block_height, accounts) do
+    account_balances =
+      Enum.map(accounts, fn %{account_id: account_id, account_subkey: subkey} ->
+        %{
+          account_id: account_id,
+          balance: 0,
+          attestation_key: Util.calculate_attestation_key(subkey, block_height, account_id)
+        }
+      end)
 
-  def find_account_leaves(leaves, attestation_key) do
     leaves
+    # enumerate the leaves with their index since index is used in identifying th leaf hash
     |> Enum.with_index()
-    |> Enum.filter(fn {%{value: value, hash: hash}, idx} ->
-      Util.leaf_hash(value, attestation_key, idx) == hash
+    # reduce over the leaves and sum account balances for each account
+    |> Enum.reduce(account_balances, fn {%{value: value, hash: hash}, idx}, account_balances ->
+      # only one match will occur per this map
+      Enum.map(account_balances, fn %{balance: balance, attestation_key: attestation_key} =
+                                      account_balance ->
+        if Util.leaf_hash(value, attestation_key, idx) == hash do
+          # if the leaf hash matches, we add the value to the balance
+          Map.put(account_balance, :balance, balance + value)
+        else
+          account_balance
+        end
+      end)
     end)
-    |> Enum.map(fn {node, _} -> node end)
-  end
-
-  @doc """
-  get_account_balance calculates the balance of an account by summing the
-  values of all leaves that belong to the account in a given tree.
-  """
-  @spec get_account_balance(
-          list(list(MerkleSumTree.Node.t())),
-          non_neg_integer(),
-          non_neg_integer(),
-          String.t()
-        ) :: non_neg_integer()
-  def get_account_balance(tree, block_height, account_id, account_subkey) do
-    attestation_key = Util.calculate_attestation_key(account_subkey, block_height, account_id)
-    get_account_balance(tree, attestation_key)
-  end
-
-  @doc """
-  get_account_balance calculates the balance of an account by summing the
-  values of all leaves that belong to the account in a given tree.
-  """
-  @spec get_account_balance(list(list(MerkleSumTree.Node.t())), String.t()) :: non_neg_integer()
-  def get_account_balance(tree, attestation_key) do
-    tree
-    |> MerkleSumTree.get_leaves()
-    |> find_account_leaves(attestation_key)
-    |> Enum.reduce(0, fn node, acc -> acc + node.value end)
   end
 
   @doc """

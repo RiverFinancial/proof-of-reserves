@@ -1,14 +1,16 @@
-# ProofOfReserves
+# Proof Of Reserves
 
 River's Proof of Reserves implementation in Elixir. This implementation is based on BitMEX's Proof of Reseres Python implementation, found [here](https://github.com/BitMEX/proof-of-reserves-liabilities).
 
 This library is used by River to generate its Proof of Liabilities tree and to allow users to download and verify the Proof of Liabilities. 
 
+See River's Proof of Reserves [here](https://river.com/reserves).
+
 ## Verifying River's Proof of Reserves 
 
-This library comes with a `verify_liabilities.exs` script that will verify River's Proof of Reserves and the balances of any accounts you provide. To run the script, run the following command:
+This library comes with a `verify_liabilities.exs` script that will verify River's Proof of Reserves and the balances of any accounts you provide.
 
-### 2. Fetch the Proof of Reserves Data
+### 1. Fetch the Proof of Reserves Data
 
 Go to River's [Proof of Reserves](https://river.com/reserves) page. Log in with the email address you used to sign up for River. 
 
@@ -16,7 +18,7 @@ Click "Verify Liabilities" and select the "Verify on your computer" option. This
 
 Click "Continue" and you will be prompted to run the setup script also seen in the next step.
 
-### 1. Setup the Project
+### 2. Setup the Project
 In your terminal, run this command to clone the repository and install the dependencies.
 
 ```bash
@@ -27,11 +29,11 @@ cd proof-of-reserves
 
 This script will install Erlang/Elixir and the project dependencies. It will then compile the library. 
 
-Back on the River [Proof of Reserves](https://river.com/reserves) page, click "Continue" and you will see the verification command, also shown in the step below. 
+Back in River's Proof of Reserves flow, click "Continue" and you will see the verification command, also shown in the step below. 
 
 ### 2. Run the Verification Script
 
-You will need to replace a few variables in the command below to run the script successfully. These values can all be found in the River "Verify Liabilities" flow. If you followed the steps above, you will now see the command in the final screen. The command on the River page will already have your email and account string(s) filled in. You will need to fill in the `<CSV_PATH>` with the path to the CSV file you downloaded in Step 1. 
+You will need to replace a few variables in the command below to run the script successfully. These values can all be found in the River Proof of Reserves flow. If you followed the steps above, you will now see the command in the final screen. The command on the River page will already have your email and account string(s) filled in. You will need to fill in the `<CSV_PATH>` with the path to the CSV file you downloaded in Step 1. 
 
 - `<EMAIL>` with the email address you used to sign up for River.
 - `<ACCOUNT_STRING>` in the format `<ACCOUNT_ID>:<ACCOUNT_KEY>`. 
@@ -45,7 +47,7 @@ If the verification is successful, it will output your balance and a summary of 
 
 If you click continue on the River page, you can check that these balances are correct. 
 
-## Installation As a Library
+## Installation as a Library
 
 This section is for developers who want to use this library in their own projects. 
 

@@ -211,6 +211,8 @@ defmodule ProofOfReservesTest do
       acct_key =
         Util.hex_to_bin!("abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234")
 
+      balance = 2
+
       liabilities = [
         Liabilities.fake_liability(1),
         # create a liability with a different account_id so
@@ -218,7 +220,7 @@ defmodule ProofOfReservesTest do
         ProofOfReserves.Liability.new(
           acct_id,
           acct_key,
-          2
+          balance
         ),
         Liabilities.fake_liability(3),
         Liabilities.fake_liability(4),
@@ -233,13 +235,14 @@ defmodule ProofOfReservesTest do
         )
 
       leaves = ProofOfReserves.MerkleSumTree.get_leaves(tree)
-      my_leaves = ProofOfReserves.find_account_leaves(leaves, block_height, acct_id, acct_key)
-      assert length(my_leaves) == 2
 
-      attestation_key = Util.calculate_attestation_key(acct_key, block_height, acct_id)
+      [%{account_id: res_acct_id, balance: res_balance}] =
+        ProofOfReserves.find_balances_for_accounts(leaves, block_height, [
+          %{account_id: acct_id, account_subkey: acct_key}
+        ])
 
-      my_balance = ProofOfReserves.get_account_balance(tree, attestation_key)
-      assert my_balance == 2
+      assert res_acct_id == acct_id
+      assert res_balance == balance
     end
 
     test "test larger balance", %{
@@ -278,14 +281,14 @@ defmodule ProofOfReservesTest do
         )
 
       leaves = ProofOfReserves.MerkleSumTree.get_leaves(tree)
-      my_leaves = ProofOfReserves.find_account_leaves(leaves, block_height, acct_id, acct_key)
-      # we can't predict the exact number of leaves, but we know it's at least 3
-      assert length(my_leaves) >= 3
 
-      attestation_key = Util.calculate_attestation_key(acct_key, block_height, acct_id)
+      [%{account_id: res_acct_id, balance: res_balance}] =
+        ProofOfReserves.find_balances_for_accounts(leaves, block_height, [
+          %{account_id: acct_id, account_subkey: acct_key}
+        ])
 
-      my_balance = ProofOfReserves.get_account_balance(tree, attestation_key)
-      assert my_balance == balance
+      assert res_acct_id == acct_id
+      assert res_balance == balance
     end
   end
 end
