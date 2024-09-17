@@ -28,6 +28,8 @@ proof_of_reserves-*.tar
 # Ignore plt files
 plts/*
 
+.DS_Store
+
 # Ignore data files
 ./data/*
 ./*.csv
