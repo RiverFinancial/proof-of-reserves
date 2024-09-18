@@ -9,7 +9,10 @@ defmodule ProofOfReserves.MixProject do
       test_coverage: [tool: ExCoveralls],
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      source_url: "https://github.com/RiverFinancial/proof-of-reserves",
+      homepage_url: "https://river.com/reserves",
+      package: package()
     ]
   end
 
@@ -38,7 +41,8 @@ defmodule ProofOfReserves.MixProject do
       {:dialyxir, "~> 1.4.3", only: envs, runtime: false},
       # Security
       {:sobelow, "~> 0.13.0", only: envs, runtime: false},
-      {:mix_audit, "~> 2.1", only: envs, runtime: false}
+      {:mix_audit, "~> 2.1", only: envs, runtime: false},
+      {:ex_doc, "~> 0.14", only: :dev, runtime: false}
     ]
   end
 
@@ -64,6 +68,17 @@ defmodule ProofOfReserves.MixProject do
       plt_add_apps: [:mix],
       flags: [:error_handling],
       ignore_warnings: ".dialyzer_ignore.exs"
+    ]
+  end
+
+  defp package do
+    [
+      description: "River's Proof of Reserves library",
+      licenses: ["MIT"],
+      links: %{
+        "River Proof of Reserves" => "https://river.com/reserves",
+        "GitHub" => "https://github.com/RiverFinancial/proof-of-reserves"
+      }
     ]
   end
 end
