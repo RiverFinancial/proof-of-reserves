@@ -1,6 +1,6 @@
 # Proof Of Reserves
 
-River's Proof of Reserves implementation in Elixir. This implementation is based on BitMEX's Proof of Reseres Python implementation, found [here](https://github.com/BitMEX/proof-of-reserves-liabilities).
+River's Proof of Reserves implementation in Elixir. This implementation is based on BitMEX's Proof of Reserves Python implementation, found [here](https://github.com/BitMEX/proof-of-reserves-liabilities).
 
 This library is used by River to generate its Proof of Liabilities tree and to allow users to download and verify the Proof of Liabilities. 
 
