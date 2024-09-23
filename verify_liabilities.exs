@@ -157,12 +157,10 @@ defmodule VerifyLiabilities do
     account_uids =
       Map.new(accounts, fn %{account_id: id, account_uid: account_uid} -> {id, account_uid} end)
 
-    IO.puts("Verifying balances in Merkle Tree...")
-
     balances =
       tree
       |> ProofOfReserves.MerkleSumTree.get_leaves()
-      |> ProofOfReserves.find_balances_for_accounts(block_height, accounts)
+      |> ProofOfReserves.async_find_balances_for_accounts(block_height, accounts)
       |> Enum.map(fn %{balance: balance, account_id: account_id} ->
         %{
           account_uid: Map.fetch!(account_uids, account_id),
