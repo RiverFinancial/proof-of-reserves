@@ -20,15 +20,14 @@ Click "Continue" and you will be prompted to run the setup script also seen in t
 
 ### 2. Setup the Project
 
-In your terminal, run this command to clone the repository and install the dependencies. This step will install [asdf](https://asdf-vm.com/) and the Erlang/Elixir SDK. 
+In your terminal, run this command to clone the repository and install the dependencies. This step will install [mise](https://mise.run/) and the Erlang/Elixir SDK. 
 
-If you already have Erlang and Elixir installed or have already verified River's Proof of Reserves before, you can skip this step. If you have asdf installed but not Erlang/Elixir, you can install the SDK with asdf by running `asdf install` from this directory and skip this step.
+If you already have Erlang and Elixir installed or have already verified River's Proof of Reserves before, you can skip this step. If you have mise installed but not Erlang/Elixir, you can install the SDK with mise by running `mise install` from this directory and skip this step.
 
 ```bash
 git clone https://github.com/RiverFinancial/proof-of-reserves.git
 cd proof-of-reserves
 ./scripts/setup.sh
-source $HOME/.asdf/asdf.sh
 ```
 
 This script will install Erlang/Elixir and the project dependencies. It will then compile the library. 
