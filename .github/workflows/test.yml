@@ -6,9 +6,8 @@ on:
 env:
   MIX_ENV: test
   # Used for mix/plt cache keys
-  ELIXIR_VERSION: '1.17.2'
-  OTP_VERSION: '27.0.1'
-
+  ELIXIR_VERSION: "1.18.4"
+  OTP_VERSION: "27.2.4"
 
 permissions:
   contents: read
@@ -21,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up Elixir
-        uses: erlef/setup-beam@v1.16.0
+        uses: erlef/setup-beam@v1
         with:
           elixir-version: ${{ env.ELIXIR_VERSION }}
           otp-version: ${{ env.OTP_VERSION }}
