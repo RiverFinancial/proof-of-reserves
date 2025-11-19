@@ -75,8 +75,9 @@ defmodule ProofOfReserves do
   # ACCOUNT BALANCE CALCULATIONS
 
   @doc """
-  find_balances_for_accounts finds all leaves that belong to a particular
-  account using the attestation_key
+  find_balances_for_accounts is the async version of find_balances_for_accounts.
+  It is a recursive function that splits the leaves into two lists, finds the balances
+  for each account in each list, and then merges the results of the two lists.
   """
   @spec find_balances_for_accounts(
           list(MerkleSumTree.Node.t()),
@@ -101,21 +102,70 @@ defmodule ProofOfReserves do
         }
       end)
 
-    leaves
-    # enumerate the leaves with their index since index is used in identifying th leaf hash
-    |> Enum.with_index()
-    # reduce over the leaves and sum account balances for each account
-    |> Enum.reduce(account_balances, fn {%{value: value, hash: hash}, idx}, account_balances ->
-      # only one match will occur per this map
-      Enum.map(account_balances, fn %{balance: balance, attestation_key: attestation_key} =
-                                      account_balance ->
-        if Util.leaf_hash(value, attestation_key, idx) == hash do
-          # if the leaf hash matches, we add the value to the balance
-          Map.put(account_balance, :balance, balance + value)
-        else
-          account_balance
-        end
+    do_find_balances_for_accounts(leaves, 0, account_balances)
+  end
+
+  # helper function for find_balances_for_accounts
+  @spec do_find_balances_for_accounts(
+          list(MerkleSumTree.Node.t()),
+          non_neg_integer(),
+          list(%{
+            account_id: non_neg_integer(),
+            balance: non_neg_integer(),
+            attestation_key: binary()
+          })
+        ) ::
+          list(%{
+            account_id: non_neg_integer(),
+            balance: non_neg_integer(),
+            attestation_key: binary()
+          })
+  defp do_find_balances_for_accounts([], _leaf_idx, account_balances), do: account_balances
+
+  defp do_find_balances_for_accounts([leaf], leaf_idx, account_balances) do
+    # when there is only one leaf, we can simply check if the leaf hash matches the leaf hash
+    # for each account in the list. If it does, we add the value to the balance.
+    Enum.map(account_balances, fn %{balance: balance, attestation_key: attestation_key} =
+                                    account_balance ->
+      # TODO: only a single account should match the leaf hash at most, so we can return early
+      if Util.leaf_hash(leaf.value, attestation_key, leaf_idx) == leaf.hash do
+        # if the leaf hash matches, we add the value to the balance
+        Map.put(account_balance, :balance, balance + leaf.value)
+      else
+        account_balance
+      end
+    end)
+  end
+
+  defp do_find_balances_for_accounts(leaves, leaf_idx, account_balances) do
+    # Split the leaves into two lists
+    leaf_ct = length(leaves)
+    mid_idx = div(leaf_ct, 2)
+
+    {left_leaves, right_leaves} = Enum.split(leaves, mid_idx)
+
+    # Recursively & asynchronously find the balances for each account in both lists
+    left_task =
+      Task.async(fn -> do_find_balances_for_accounts(left_leaves, leaf_idx, account_balances) end)
+
+    right_task =
+      Task.async(fn ->
+        do_find_balances_for_accounts(right_leaves, leaf_idx + mid_idx, account_balances)
       end)
+
+    left_balances = Task.await(left_task, :infinity)
+    right_balances = Task.await(right_task, :infinity)
+
+    # Merge the results of the two lists
+    Enum.zip_with(left_balances, right_balances, fn
+      # the matching on account_id and attestation_key ensures that the balances are added to the correct account
+      %{account_id: account_id, balance: left_balance, attestation_key: attestation_key},
+      %{account_id: account_id, balance: right_balance, attestation_key: attestation_key} ->
+        %{
+          account_id: account_id,
+          balance: left_balance + right_balance,
+          attestation_key: attestation_key
+        }
     end)
   end
 
