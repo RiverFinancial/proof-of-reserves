@@ -66,9 +66,9 @@ defmodule ProofOfReserves.Liabilities do
     if liability.amount <= @liability_minimum_threshold_sat do
       [liability]
     else
-      # the rand.uniform(n) returns a random number 1 <= x <= n
+      # crypto_rand_uniform(n) returns a random number 1 <= x <= n
       # so the -1 ensures that we never end up with a zero-amount liability.
-      random_split = :rand.uniform(liability.amount - 1)
+      random_split = Util.crypto_rand_uniform(liability.amount - 1)
       a = Liability.new(liability.account_id, liability.account_subkey, random_split)
 
       b =
