@@ -36,7 +36,10 @@ defmodule ProofOfReserves.MixProject do
     [
       # Test & Lint
       {:credo, "== 1.6.4", only: envs, runtime: false},
-      {:excoveralls, "== 0.14.5", only: envs},
+      # 0.18.x drops the hackney dependency, which carried four unpatched advisories
+      # (including one high) with no fix available inside excoveralls 0.14's "~> 1.16"
+      # requirement. 0.18 needs only jason, plus castore optionally.
+      {:excoveralls, "== 0.18.5", only: envs},
       # Type checking
       {:dialyxir, "~> 1.4.3", only: envs, runtime: false},
       # Security
