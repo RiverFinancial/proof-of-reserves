@@ -38,4 +38,72 @@ defmodule ProofOfReserves.UtilTest do
       assert Util.next_power_of_two(9) == 16
     end
   end
+
+  describe "crypto_rand_uniform/1" do
+    test "n = 1 always returns 1" do
+      Enum.each(1..100, fn _ -> assert Util.crypto_rand_uniform(1) == 1 end)
+    end
+
+    test "stays within 1..n, including at byte boundaries" do
+      ns = [2, 3, 4, 255, 256, 257, 65_535, 65_536, 65_537, 100_000_000, 2_100_000_000_000_000]
+
+      Enum.each(ns, fn n ->
+        Enum.each(1..500, fn _ ->
+          x = Util.crypto_rand_uniform(n)
+          assert x >= 1 and x <= n, "#{x} is outside 1..#{n}"
+        end)
+      end)
+    end
+
+    test "covers the whole range" do
+      draws = for _ <- 1..2_000, do: Util.crypto_rand_uniform(4)
+      assert Enum.sort(Enum.uniq(draws)) == [1, 2, 3, 4]
+    end
+
+    test "rejection sampling removes modulo bias at a byte boundary" do
+      # n = 255 drawn from one byte is the classic biased case: a naive
+      # rem(v, 255) + 1 would make 1 twice as likely as every other value.
+      n = 255
+      trials = n * 400
+      expected = trials / n
+
+      counts =
+        for(_ <- 1..trials, do: Util.crypto_rand_uniform(n))
+        |> Enum.frequencies()
+
+      ones = Map.fetch!(counts, 1)
+
+      assert ones < expected * 1.5,
+             "value 1 appeared #{ones} times, expected ~#{expected} (modulo bias?)"
+    end
+
+    test "is approximately uniform" do
+      n = 4
+      trials = 40_000
+      expected = trials / n
+
+      counts =
+        for(_ <- 1..trials, do: Util.crypto_rand_uniform(n))
+        |> Enum.frequencies()
+
+      Enum.each(1..n, fn v ->
+        count = Map.fetch!(counts, v)
+
+        assert abs(count - expected) < expected * 0.1,
+               "value #{v} appeared #{count} times, expected ~#{expected}"
+      end)
+    end
+
+    test "is not reproducible from a :rand seed" do
+      # Regression test: the draw must not come from :rand, whose stream is
+      # replayable by anyone who can guess the process seed.
+      :rand.seed(:exsss, {1, 2, 3})
+      a = for _ <- 1..20, do: Util.crypto_rand_uniform(1_000_000_000)
+
+      :rand.seed(:exsss, {1, 2, 3})
+      b = for _ <- 1..20, do: Util.crypto_rand_uniform(1_000_000_000)
+
+      refute a == b
+    end
+  end
 end

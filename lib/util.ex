@@ -95,6 +95,43 @@ defmodule ProofOfReserves.Util do
   end
 
   @doc """
+  crypto_rand_uniform returns a uniformly-distributed random integer 1 <= x <= n.
+
+  This mirrors :rand.uniform/1 but draws from :crypto.strong_rand_bytes/1.
+  Cryptographic randomness is required here: the amounts chosen when splitting a
+  liability are the only thing masking account balances in the published tree, and
+  every one of them is published verbatim as a leaf value. :rand is seeded per
+  process from the system clock and a pid hash, so its stream is reproducible by
+  anyone who can guess the build time.
+
+  Rejection sampling is used rather than a modulo reduction so that the
+  distribution is exactly uniform. The rejection region is always smaller than
+  half of the sampled range, so this terminates in fewer than 2 draws on average.
+  """
+  @spec crypto_rand_uniform(pos_integer()) :: pos_integer()
+  def crypto_rand_uniform(1), do: 1
+
+  def crypto_rand_uniform(n) when is_integer(n) and n > 1 do
+    byte_len = n |> :binary.encode_unsigned() |> byte_size()
+    bound = 1 <<< (8 * byte_len)
+    # drop the trailing partial interval so every residue is equally likely
+    limit = bound - rem(bound, n)
+
+    draw_below(n, byte_len, limit) + 1
+  end
+
+  @spec draw_below(pos_integer(), pos_integer(), pos_integer()) :: non_neg_integer()
+  defp draw_below(n, byte_len, limit) do
+    byte_len
+    |> :crypto.strong_rand_bytes()
+    |> :binary.decode_unsigned()
+    |> case do
+      v when v < limit -> rem(v, n)
+      _ -> draw_below(n, byte_len, limit)
+    end
+  end
+
+  @doc """
   Replaces all but the first and last 2 bytes of a hash with "...".
   """
   @spec abbr_hash(binary) :: String.t()

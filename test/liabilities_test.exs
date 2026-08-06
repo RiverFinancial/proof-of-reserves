@@ -170,4 +170,56 @@ defmodule ProofOfReserves.LiabilitiesTest do
       end)
     end
   end
+
+  describe "split_liability/1" do
+    test "does not split at or below the minimum threshold" do
+      Enum.each([0, 1], fn amount ->
+        liability = Liabilities.fake_liability(amount)
+        assert Liabilities.split_liability(liability) == [liability]
+      end)
+    end
+
+    test "splits 2 sats into two 1-sat liabilities" do
+      assert [a, b] = Liabilities.split_liability(Liabilities.fake_liability(2))
+      assert a.amount == 1
+      assert b.amount == 1
+    end
+
+    test "conserves the amount and never yields a zero-amount liability" do
+      amounts = [2, 3, 10, 12_345, 5_000_000, 2_100_000_000_000_000]
+
+      Enum.each(amounts, fn amount ->
+        Enum.each(1..200, fn _ ->
+          assert [a, b] = Liabilities.split_liability(Liabilities.fake_liability(amount))
+          assert a.amount + b.amount == amount
+          assert a.amount >= 1
+          assert b.amount >= 1
+        end)
+      end)
+    end
+
+    test "preserves account_id and account_subkey" do
+      liability = Liabilities.fake_liability(1_000)
+      assert [a, b] = Liabilities.split_liability(liability)
+
+      Enum.each([a, b], fn split ->
+        assert split.account_id == liability.account_id
+        assert split.account_subkey == liability.account_subkey
+      end)
+    end
+
+    test "split amounts are not reproducible from a :rand seed" do
+      # Regression test: split amounts mask account balances and are published
+      # verbatim as leaf values, so they must not come from a replayable stream.
+      liability = Liabilities.fake_liability(1_000_000_000)
+
+      :rand.seed(:exsss, {42, 42, 42})
+      a = for _ <- 1..20, do: hd(Liabilities.split_liability(liability)).amount
+
+      :rand.seed(:exsss, {42, 42, 42})
+      b = for _ <- 1..20, do: hd(Liabilities.split_liability(liability)).amount
+
+      refute a == b
+    end
+  end
 end
